@@ -36,6 +36,21 @@ torch.set_num_threads(1)
 torch.set_num_interop_threads(1)
 
 
+def custom_qkv_attention(self, q: Tensor, k: Tensor, v: Tensor, mask: Optional[Tensor] = None):
+    n_batch, n_ctx, n_state = q.shape
+    scale = (n_state // self.n_head) ** -0.25
+    q = q.view(*q.shape[:2], self.n_head, -1).permute(0, 2, 1, 3) * scale
+    k = k.view(*k.shape[:2], self.n_head, -1).permute(0, 2, 3, 1) * scale
+    v = v.view(*v.shape[:2], self.n_head, -1).permute(0, 2, 1, 3)
+    qk = q @ k
+    if mask is not None:
+        qk = qk + mask[:n_ctx, :n_ctx]
+    qk = qk.float()
+    w = F.softmax(qk, dim=-1).to(q.dtype)
+    return (w @ v).permute(0, 2, 1, 3).flatten(start_dim=2), qk.detach()
+
+MultiHeadAttention.qkv_attention = custom_qkv_attention
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -320,7 +335,7 @@ def main():
     print(args)
     print(name)
 
-    opset_version = 13
+    opset_version = 14
 
     if name == "distil-medium.en":
         filename = "./distil-medium-en-original-model.bin"
