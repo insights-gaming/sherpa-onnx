@@ -55,20 +55,24 @@ elseif(APPLE)
   )
   set(SHERPA_ONNX_OS "${_product_name} ${_product_version} ${_build_version}")
 elseif(WIN32)
-  execute_process(COMMAND
-    wmic os get caption,version
-    OUTPUT_VARIABLE SHERPA_ONNX_OS_TWO_LINES
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  # Now SHERPA_ONNX_OS_TWO_LINES contains something like
-  #  Caption                          Version
-  #  Microsoft Windows 10 Pro         10.0.18362
-  string(REPLACE "\n" ";" SHERPA_ONNX_OS_LIST ${SHERPA_ONNX_OS_TWO_LINES})
-  list(GET SHERPA_ONNX_OS_LIST 1 SHERPA_ONNX_OS)
+  execute_process(
+      COMMAND wmic os get caption,version
+      OUTPUT_VARIABLE SHERPA_ONNX_OS_TWO_LINES
+      ERROR_QUIET
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  # -- New guard -----------------------------------------------------------
+  if(SHERPA_ONNX_OS_TWO_LINES)
+    string(REPLACE "\n" ";" SHERPA_ONNX_OS_LIST ${SHERPA_ONNX_OS_TWO_LINES})
+    list(GET SHERPA_ONNX_OS_LIST 1 SHERPA_ONNX_OS)
+  else()
+    set(SHERPA_ONNX_OS "Windows (wmic not available)")
+  endif()
 else()
   set(SHERPA_ONNX_OS "Unknown")
 endif()
 message(STATUS "OS used to build sherpa-onnx: ${SHERPA_ONNX_OS}")
+
 
 if(CMAKE_CXX_COMPILER)
   message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
