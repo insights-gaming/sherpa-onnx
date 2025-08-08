@@ -44,6 +44,11 @@ void ParseOptions::Register(const std::string &name, bool *ptr,
   RegisterTmpl(name, ptr, doc);
 }
 
+void ParseOptions::Register(const std::string &name, size_t *ptr,
+                            const std::string &doc) {
+  RegisterTmpl(name, ptr, doc);
+}
+
 void ParseOptions::Register(const std::string &name, int32_t *ptr,
                             const std::string &doc) {
   RegisterTmpl(name, ptr, doc);

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cctype>
 
+#include "sherpa-onnx/csrc/log.h"
 #include "sherpa-onnx/csrc/macros.h"
 
 namespace sherpa_onnx {
@@ -14,6 +15,8 @@ namespace sherpa_onnx {
 Provider StringToProvider(std::string s) {
   std::transform(s.cbegin(), s.cend(), s.begin(),
                  [](unsigned char c) { return std::tolower(c); });
+
+  SHERPA_ONNX_LOG(INFO) << "Trying to use provider " << s;
   if (s == "cpu") {
     return Provider::kCPU;
   } else if (s == "cuda") {
@@ -28,6 +31,8 @@ Provider StringToProvider(std::string s) {
     return Provider::kTRT;
   } else if (s == "directml") {
     return Provider::kDirectML;
+  } else if (s == "openvino") {
+    return Provider::kOpenVINO;
   } else {
     SHERPA_ONNX_LOGE("Unsupported string: %s. Fallback to cpu", s.c_str());
     return Provider::kCPU;

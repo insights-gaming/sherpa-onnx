@@ -62,6 +62,7 @@ class ParseOptions {
   ~ParseOptions() = default;
 
   void Register(const std::string &name, bool *ptr, const std::string &doc);
+  void Register(const std::string &name, size_t *ptr, const std::string &doc);
   void Register(const std::string &name, int32_t *ptr, const std::string &doc);
   void Register(const std::string &name, int64_t *ptr, const std::string &doc);
   void Register(const std::string &name, uint32_t *ptr, const std::string &doc);

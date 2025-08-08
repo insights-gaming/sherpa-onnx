@@ -23,6 +23,10 @@
 #include "dml_provider_factory.h"  // NOLINT
 #endif
 
+#if SHERPA_ONNX_ENABLE_OPENVINO == 1
+#include "openvino_provider_factory.h"
+#endif
+
 namespace sherpa_onnx {
 
 static void OrtStatusFailure(OrtStatus *status, const char *s) {
@@ -236,6 +240,17 @@ Ort::SessionOptions GetSessionOptionsImpl(
           (int32_t)__ANDROID_API__);
 #else
       SHERPA_ONNX_LOGE("NNAPI is for Android only. Fallback to cpu");
+#endif
+      break;
+    }
+    case Provider::kOpenVINO: {
+#if SHERPA_ONNX_ENABLE_OPENVINO == 1
+// TODO: add ORT OpenVINO EP registration logic
+#else
+      SHERPA_ONNX_LOGE(
+          "OpenVINO is not enabled in this build of sherpa-onnx. "
+          "Please compile with -DSHERPA_ONNX_ENABLE_OPENVINO=ON. "
+          "Fallback to cpu!");
 #endif
       break;
     }
