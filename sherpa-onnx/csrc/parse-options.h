@@ -133,6 +133,9 @@ class ParseOptions {
   /// Register boolean variable
   void RegisterSpecific(const std::string &name, const std::string &idx,
                         bool *b, const std::string &doc, bool is_standard);
+  /// Register size_t variable
+  void RegisterSpecific(const std::string &name, const std::string &idx,
+                        size_t *i, const std::string &doc, bool is_standard);
   /// Register int32_t variable
   void RegisterSpecific(const std::string &name, const std::string &idx,
                         int32_t *i, const std::string &doc, bool is_standard);
@@ -167,6 +170,7 @@ class ParseOptions {
                  bool has_equal_sign);
 
   bool ToBool(std::string str) const;
+  size_t ToSize(const std::string &str) const;
   int32_t ToInt(const std::string &str) const;
   int64_t ToInt64(const std::string &str) const;
   uint32_t ToUint(const std::string &str) const;
@@ -175,6 +179,7 @@ class ParseOptions {
 
   // maps for option variables
   std::unordered_map<std::string, bool *> bool_map_;
+  std::unordered_map<std::string, size_t *> size_map_;
   std::unordered_map<std::string, int32_t *> int_map_;
   std::unordered_map<std::string, int64_t *> int64_map_;
   std::unordered_map<std::string, uint32_t *> uint_map_;

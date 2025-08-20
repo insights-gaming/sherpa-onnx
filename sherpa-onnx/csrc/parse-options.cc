@@ -127,6 +127,15 @@ void ParseOptions::RegisterSpecific(const std::string &name,
 }
 
 void ParseOptions::RegisterSpecific(const std::string &name,
+                                    const std::string &idx, size_t *i,
+                                    const std::string &doc, bool is_standard) {
+  size_map_[idx] = i;
+  std::ostringstream ss;
+  ss << doc << " (size, default = " << *i << ")";
+  doc_map_[idx] = DocInfo(name, ss.str(), is_standard);
+}
+
+void ParseOptions::RegisterSpecific(const std::string &name,
                                     const std::string &idx, int32_t *i,
                                     const std::string &doc, bool is_standard) {
   int_map_[idx] = i;
@@ -190,6 +199,7 @@ void ParseOptions::DisableOption(const std::string &name) {
     exit(-1);
   }
   bool_map_.erase(name);
+  size_map_.erase(name);
   int_map_.erase(name);
   int64_map_.erase(name);
   uint_map_.erase(name);
@@ -550,6 +560,8 @@ bool ParseOptions::SetOption(const std::string &key, const std::string &value,
       exit(-1);
     }
     *(bool_map_[key]) = ToBool(value);
+  } else if (size_map_.end() != size_map_.find(key)) {
+    *(size_map_[key]) = ToSize(value);
   } else if (int_map_.end() != int_map_.find(key)) {
     *(int_map_[key]) = ToInt(value);
   } else if (int64_map_.end() != int64_map_.find(key)) {
@@ -590,6 +602,15 @@ bool ParseOptions::ToBool(std::string str) const {
       str.c_str());
   exit(-1);
   return false;  // never reached
+}
+
+size_t ParseOptions::ToSize(const std::string &str) const {
+  size_t ret = 0;
+  if (!ConvertStringToInteger(str, &ret)) {
+    SHERPA_ONNX_LOGE("Invalid integer option \"%s\"", str.c_str());
+    exit(-1);
+  }
+  return ret;
 }
 
 int32_t ParseOptions::ToInt(const std::string &str) const {
