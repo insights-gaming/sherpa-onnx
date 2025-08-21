@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -24,7 +25,7 @@
 #endif
 
 #if SHERPA_ONNX_ENABLE_OPENVINO == 1
-#include "openvino_provider_factory.h"
+#include "openvino_provider_factory.h"  // NOLINT
 #endif
 
 namespace sherpa_onnx {
@@ -245,7 +246,47 @@ Ort::SessionOptions GetSessionOptionsImpl(
     }
     case Provider::kOpenVINO: {
 #if SHERPA_ONNX_ENABLE_OPENVINO == 1
-// TODO: add ORT OpenVINO EP registration logic
+      if (std::find(available_providers.begin(), available_providers.end(),
+                    "OpenVINOExecutionProvider") != available_providers.end()) {
+        SHERPA_ONNX_LOGE("Populating OpenVINOExecutionProvider options");
+        OrtOpenVINOProviderOptions options;
+
+        // match the `OpenvinoConfig` fields with the options specified in the docs: https://onnxruntime.ai/docs/execution-providers/OpenVINO-ExecutionProvider.html#summary-of-options
+
+        // Set device type - default to CPU, can be GPU, MYRIAD, etc.
+        options.device_type = "CPU";
+
+        // Set device ID if provider_config is available
+        if (provider_config != nullptr) {
+          const OpenvinoConfig *cfg = &provider_config->openvino_config;
+          options.device_type = cfg->device_type.c_str();
+          options.enable_npu_fast_compile = false; // cfg->enable_npu_fast_compile;
+          options.device_id = std::to_string(provider_config->device).c_str();
+          options.num_of_threads = cfg->num_of_threads;
+          // options.num_streams = cfg->num_streams;
+          options.cache_dir = cfg->cache_dir.c_str();
+          options.context = cfg->context; // OpenCL Context
+          options.enable_opencl_throttling = cfg->enable_opencl_throttling;
+          // options.enable_qdq_optimizer = cfg->enable_qdq_optimizer;
+          // options.load_config = cfg->load_config;
+          options.enable_dynamic_shapes = !cfg->disable_dynamic_shapes;
+          // options.model_priority = cfg->model_priority;
+        }
+
+        try {
+          sess_opts.AppendExecutionProvider_OpenVINO(options);
+        } catch (const std::exception& e) {
+          SHERPA_ONNX_LOGE(
+              "Failed to enable OpenVINO: %s. Available providers: %s. "
+              "Fallback to cpu!",
+              e.what(), os.str().c_str());
+        }
+      } else {
+        SHERPA_ONNX_LOGE(
+            "OpenVINO provider not available. Available providers: %s. "
+            "Fallback to cpu!",
+            os.str().c_str());
+      }
 #else
       SHERPA_ONNX_LOGE(
           "OpenVINO is not enabled in this build of sherpa-onnx. "
