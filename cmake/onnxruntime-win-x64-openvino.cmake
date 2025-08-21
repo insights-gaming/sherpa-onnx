@@ -23,17 +23,17 @@ if(location_onnxruntime_header_dir AND location_onnxruntime_lib)
     message("Use preinstall onnxruntime with openvino: ${location_onnxruntime_lib}")
 else()
 
-    set(onnxruntime_URL  "https://github.com/intel/onnxruntime/releases/download/v5.2/nuget-local-artifacts.zip")
-    set(onnxruntime_HASH "SHA256=9870fae76d3cd2a23e2e2a19fb3f6a2ec1898f3e27e19dc8f05fd04a9289e7de")
+    set(onnxruntime_URL  "https://globalcdn.nuget.org/packages/intel.ml.onnxruntime.openvino.1.22.0.nupkg")
+    set(onnxruntime_HASH "SHA256=56409ccc3f0d011656f8a2ca0a816734b4e9c3e831162e75905f2b3c6660f6d3")
 
     # If you don't have access to the Internet,
     # please download onnxruntime to one of the following locations.
     # You can add more if you want.
     set(possible_file_locations
-        $ENV{HOME}/Downloads/Microsoft.ML.OnnxRuntime.OpenVino.1.17.1-dev-20240313-0625-e39929291.nupkg
-        ${PROJECT_SOURCE_DIR}/Microsoft.ML.OnnxRuntime.OpenVino.1.17.1-dev-20240313-0625-e39929291.nupkg
-        ${PROJECT_BINARY_DIR}/Microsoft.ML.OnnxRuntime.OpenVino.1.17.1-dev-20240313-0625-e39929291.nupkg
-        /tmp/Microsoft.ML.OnnxRuntime.OpenVino.1.17.1-dev-20240313-0625-e39929291.nupkg
+        $ENV{HOME}/Downloads/intel.ml.onnxruntime.openvino.1.22.0.nupkg
+        ${PROJECT_SOURCE_DIR}/intel.ml.onnxruntime.openvino.1.22.0.nupkg
+        ${PROJECT_BINARY_DIR}/intel.ml.onnxruntime.openvino.1.22.0.nupkg
+        /tmp/intel.ml.onnxruntime.openvino.1.22.0.nupkg
     )
 
     foreach(f IN LISTS possible_file_locations)
@@ -56,17 +56,10 @@ else()
       FetchContent_Populate(onnxruntime)
     endif()
     message(STATUS "onnxruntime is downloaded to ${onnxruntime_SOURCE_DIR}")
-    
-    file(ARCHIVE_EXTRACT
-      INPUT "${onnxruntime_SOURCE_DIR}/Microsoft.ML.OnnxRuntime.OpenVino.1.17.1-dev-20240313-0625-e39929291.nupkg"
-      DESTINATION ${onnxruntime_BINARY_DIR}
-    )
-
-    message(STATUS "onnxruntime openvino is extracted to ${onnxruntime_BINARY_DIR}")
 
     find_library(location_onnxruntime onnxruntime
       PATHS
-      "${onnxruntime_BINARY_DIR}/runtimes/win-x64/native"
+      "${onnxruntime_SOURCE_DIR}/runtimes/win-x64/native"
       NO_CMAKE_SYSTEM_PATH
     )
 
@@ -76,20 +69,20 @@ else()
 
     set_target_properties(onnxruntime PROPERTIES
       IMPORTED_LOCATION ${location_onnxruntime}
-      INTERFACE_INCLUDE_DIRECTORIES "${onnxruntime_BINARY_DIR}/build/native/include"
+      INTERFACE_INCLUDE_DIRECTORIES "${onnxruntime_SOURCE_DIR}/build/native/include"
     )
 
     set_property(TARGET onnxruntime
       PROPERTY
-        IMPORTED_IMPLIB "${onnxruntime_BINARY_DIR}/runtimes/win-x64/native/onnxruntime.lib"
+        IMPORTED_IMPLIB "${onnxruntime_SOURCE_DIR}/runtimes/win-x64/native/onnxruntime.lib"
     )
 
-    file(COPY ${onnxruntime_BINARY_DIR}/runtimes/win-x64/native/onnxruntime.dll
+    file(COPY ${onnxruntime_SOURCE_DIR}/runtimes/win-x64/native/onnxruntime.dll
       DESTINATION
         ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}
     )
 
-    file(GLOB onnxruntime_lib_files "${onnxruntime_BINARY_DIR}/runtimes/win-x64/native/onnxruntime.*")
+    file(GLOB onnxruntime_lib_files "${onnxruntime_SOURCE_DIR}/runtimes/win-x64/native/onnxruntime.*")
 
     message(STATUS "onnxruntime lib files: ${onnxruntime_lib_files}")
 
